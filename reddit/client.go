@@ -1,11 +1,11 @@
 package reddit
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-  "encoding/json"
 )
 
 const URL = "https://api.reddit.com"
@@ -51,13 +51,13 @@ func (c *Client) Get(uri string) []byte {
 }
 
 func (c *Client) GetFrontPage() *PostListing {
-  var l *PostListing;
+	var l *PostListing
 
-  resp := c.Get("/");
+	resp := c.Get("/")
 
-  json.Unmarshal(resp, &l);
+	json.Unmarshal(resp, &l)
 
-  return l;
+	return l
 }
 
 func RedditUrl(uri string) string {
