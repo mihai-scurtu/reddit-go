@@ -2,7 +2,7 @@ package reddit
 
 type PostListing struct {
 	Data struct {
-		Children []PostResponse `json:children`
+		Children []postResponse `json:children`
 		After    string         `json:after`
 		Before   string         `json:before`
 	}

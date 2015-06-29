@@ -6,7 +6,7 @@ import (
 	_ "time"
 )
 
-type PostResponse struct {
+type postResponse struct {
 	Data Post
 }
 
