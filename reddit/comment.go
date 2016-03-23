@@ -3,6 +3,7 @@ package reddit
 type Comment struct {
 	Id string `json:"id"`
 	ParentId string `json:"parent_id"`
+	Created float64 `json:"created"`
 
 	SubredditId string `json:"subreddit_id"`
 	Subreddit   string `json:"subreddit"`
