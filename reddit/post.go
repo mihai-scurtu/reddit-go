@@ -23,14 +23,12 @@ type Post struct {
 
 type PostListing struct {
 	Data struct {
-		Children []postResponse `json:children`
-		After    string         `json:after`
-		Before   string         `json:before`
+		Children []struct {
+			Data Post
+		} `json:children`
+		After  string `json:after`
+		Before string `json:before`
 	}
-}
-
-type postResponse struct {
-	Data Post
 }
 
 func (pl *PostListing) GetChildren() []Post {
