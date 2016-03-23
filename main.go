@@ -5,7 +5,7 @@ import (
 	"github.com/mihai-scurtu/reddit-go/reddit"
 	"sort"
 	"strings"
-	"time"
+	_ "time"
 )
 
 type sortRunes []rune
@@ -33,27 +33,35 @@ func anagramHash(s string) string {
 }
 
 func main() {
-	Reddit := reddit.NewClient("Testing Go Wrapper")
+	client := reddit.NewClient("Testing Go Wrapper")
 
-	var anagrams = make(map[string]string)
+	comments := client.GetComments("golang", "romania").GetChildren()
 
-	fmt.Println(Reddit.UserAgent)
+	fmt.Println(len(comments))
 
-	for {
-		postList := Reddit.GetNewPosts()
-
-		for _, p := range postList.GetChildren() {
-			hash := anagramHash(p.Title)
-			match := anagrams[hash]
-
-			if len(match) > 0 && match != p.Title {
-				fmt.Println("!!! FOUND !!! '" + p.Title + "' = '" + match + "'")
-			}
-
-			match = p.Title
-		}
-
-		fmt.Println(".")
-		time.Sleep(1 * time.Minute)
+	for _, comment := range comments {
+		fmt.Println(comment)
 	}
+
+	//var anagrams = make(map[string]string)
+	//
+	//fmt.Println(Reddit.UserAgent)
+	//
+	//for {
+	//	postList := Reddit.GetNewPosts()
+	//
+	//	for _, p := range postList.GetChildren() {
+	//		hash := anagramHash(p.Title)
+	//		match := anagrams[hash]
+	//
+	//		if len(match) > 0 && match != p.Title {
+	//			fmt.Println("!!! FOUND !!! '" + p.Title + "' = '" + match + "'")
+	//		}
+	//
+	//		match = p.Title
+	//	}
+	//
+	//	fmt.Println(".")
+	//	time.Sleep(1 * time.Minute)
+	//}
 }
