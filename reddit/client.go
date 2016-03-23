@@ -60,6 +60,16 @@ func (c *Client) GetFrontPage() *PostListing {
 	return l
 }
 
+func (c *Client) GetNewPosts() *PostListing {
+	var l *PostListing
+
+	resp := c.Get("/new")
+
+	json.Unmarshal(resp, &l)
+
+	return l
+}
+
 func RedditUrl(uri string) string {
 	if len(uri) == 0 || uri[0] != '/' {
 		uri = "/" + uri

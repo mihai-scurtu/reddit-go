@@ -77,7 +77,7 @@ const JSON = "{\"kind\": \"t3\", \"data\": {\"domain\": \"i.imgur.com\", \"banne
 func TestPostConstructor(t *testing.T) {
 	assert := assert.New(t)
 
-	var r PostResponse
+	var r postResponse
 
 	json.Unmarshal([]byte(JSON), &r)
 
