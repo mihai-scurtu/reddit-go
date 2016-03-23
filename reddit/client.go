@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
+	"fmt"
 )
 
 const URL = "https://api.reddit.com"
@@ -55,7 +57,9 @@ func (c *Client) GetFrontPage() *PostListing {
 
 	resp := c.Get("/")
 
-	json.Unmarshal(resp, &l)
+	if err := json.Unmarshal(resp, &l); err !=nil {
+		log.Fatal(err)
+	}
 
 	return l
 }
@@ -65,7 +69,27 @@ func (c *Client) GetNewPosts() *PostListing {
 
 	resp := c.Get("/new")
 
-	json.Unmarshal(resp, &l)
+	if err := json.Unmarshal(resp, &l); err !=nil {
+		log.Fatal(err)
+	}
+
+	return l
+}
+
+func (c *Client) GetComments(subreddits ...string) *CommentListing {
+	var l *CommentListing
+
+	uri := "/r/" + strings.Join(subreddits, "+") + "/comments"
+
+	resp := c.Get(uri)
+
+	fmt.Println(string(resp))
+
+	if err := json.Unmarshal(resp, &l); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%+v\n", l)
 
 	return l
 }
