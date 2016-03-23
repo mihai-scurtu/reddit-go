@@ -20,3 +20,25 @@ type Post struct {
 	Upvotes      float64 `json:ups`
 	Downvotes    float64 `json:downs`
 }
+
+type PostListing struct {
+	Data struct {
+		Children []postResponse `json:children`
+		After    string         `json:after`
+		Before   string         `json:before`
+	}
+}
+
+type postResponse struct {
+	Data Post
+}
+
+func (pl *PostListing) GetChildren() []Post {
+	var list []Post
+
+	for _, p := range pl.Data.Children {
+		list = append(list, p.Data)
+	}
+
+	return list
+}
