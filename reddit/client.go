@@ -7,15 +7,34 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"net/url"
+	"time"
 	"fmt"
+	"errors"
 )
 
-const URL = "https://api.reddit.com"
+const (
+	URL = "https://api.reddit.com"
+	OAUTH_URL = "https://oauth.reddit.com"
+)
 
 var httpClient = &http.Client{}
 
 type Client struct {
 	UserAgent string
+
+	Username string
+	Password string
+	ClientId string
+	ClientSecret string
+
+	Token string
+	TokenExpires int64
+}
+
+type tokenResponse struct {
+	Token string `json:"access_token"`
+	Expires int64 `json:"expires_in"`
 }
 
 func NewClient(userAgent string) *Client {
@@ -24,7 +43,7 @@ func NewClient(userAgent string) *Client {
 }
 
 func (c *Client) createRequest(method string, uri string, body io.Reader) *http.Request {
-	url := RedditUrl(uri)
+	url := c.url(uri)
 
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -33,13 +52,17 @@ func (c *Client) createRequest(method string, uri string, body io.Reader) *http.
 
 	req.Header.Set("User-Agent", c.UserAgent)
 
+	if c.Token != "" {
+		req.Header.Add("Authorization", "Bearer " + c.Token)
+	}
+
 	return req
 }
 
 func (c *Client) Get(uri string) []byte {
 	req := c.createRequest("GET", uri, nil)
 
-	resp, err := httpClient.Do(req)
+	resp, err := c.run(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,23 +104,74 @@ func (c *Client) GetComments(subreddits ...string) *CommentListing {
 
 	uri := "/r/" + strings.Join(subreddits, "+") + "/comments"
 
-	resp := c.Get(uri)
 
+	resp := c.Get(uri)
 	fmt.Println(string(resp))
 
 	if err := json.Unmarshal(resp, &l); err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%+v\n", l)
-
 	return l
 }
 
-func RedditUrl(uri string) string {
+func (this *Client) url(uri string) string {
 	if len(uri) == 0 || uri[0] != '/' {
 		uri = "/" + uri
 	}
 
-	return URL + uri
+	base := URL
+	if this.Token != "" {
+		base = OAUTH_URL
+	}
+ 	return base + uri
+}
+
+func (this *Client) run(req *http.Request) (*http.Response, error) {
+	if this.Token != "" && this.TokenExpires < time.Now().Unix() {
+		this.GetToken()
+	}
+
+	return httpClient.Do(req)
+}
+
+func (this *Client) GetToken() error {
+	form := url.Values{}
+
+	form.Add("grant_type", "password")
+	form.Add("username", this.Username)
+	form.Add("password", this.Password)
+
+	req, err := http.NewRequest("POST", "https://www.reddit.com/api/v1/access_token", strings.NewReader(form.Encode()))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Add("User-Agent", this.UserAgent)
+	req.SetBasicAuth(this.ClientId, this.ClientSecret)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tr := tokenResponse{}
+	err = json.Unmarshal(body, &tr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if tr.Token == "" {
+		return errors.New(string(body))
+	}
+
+	this.Token = tr.Token
+	this.TokenExpires = time.Now().Unix() + tr.Expires - 600
+
+	return nil
 }
