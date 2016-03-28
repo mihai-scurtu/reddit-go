@@ -76,9 +76,15 @@ func (c *Client) Get(uri string) []byte {
 }
 
 func (c *Client) GetFrontPage() *PostListing {
+	return c.GetPostListing("/")
+}
+
+func (this *Client) GetPostListing(uri string) *PostListing {
 	var l *PostListing
 
-	resp := c.Get("/")
+	resp := this.Get(uri)
+
+	//log.Println(string(resp))
 
 	if err := json.Unmarshal(resp, &l); err !=nil {
 		log.Fatal(err)
@@ -88,15 +94,7 @@ func (c *Client) GetFrontPage() *PostListing {
 }
 
 func (c *Client) GetNewPosts() *PostListing {
-	var l *PostListing
-
-	resp := c.Get("/new")
-
-	if err := json.Unmarshal(resp, &l); err !=nil {
-		log.Fatal(err)
-	}
-
-	return l
+	return c.GetPostListing("/new")
 }
 
 func (c *Client) GetComments(subreddits ...string) *CommentListing {
